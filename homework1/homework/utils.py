@@ -18,13 +18,12 @@ label_dict = {'background': 0, 'kart': 1, 'pickup': 2, 'nitro': 3, 'bomb': 4, 'p
 
 class SuperTuxDataset(Dataset):
     def __init__(self, dataset_path):
-        """
-        Your code here
-        Hint: Use the python csv library to parse labels.csv
-        """
         self.data = []
+        # setup pytorch transformation
+        transformation = transforms.Compose([transforms.ToTensor()])
         # parse csv with csv package, load image with Pillow
-        with open(dataset_path) as csv_file:
+        csv_path = str(dataset_path) + "/" + "labels.csv"
+        with open(csv_path) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_num = 0
             for row in csv_reader:
@@ -32,30 +31,23 @@ class SuperTuxDataset(Dataset):
                 if line_num > 0:
                     # get image data
                     filename = row[0]
-                    img = Image.open(str(filename))
-                    img_data = transforms.ToTensor(img)
+                    img_path = str(dataset_path) + "/" + filename
+                    img = Image.open(str(img_path))
+                    img_data = transformation(img)
                     # get label
                     label_name = row[1]
                     label = label_dict[label_name]
                     # store to data array of tuples (img_data, label)
                     self.data.append((img_data, label))
-                    print((img_data, label))
                 line_num += 1
 
-        #raise NotImplementedError('SuperTuxDataset.__init__')
 
     def __len__(self):
-        """
-        Your code here
-        """
-        raise NotImplementedError('SuperTuxDataset.__len__')
+        return len(self.data)
+
 
     def __getitem__(self, idx):
-        """
-        Your code here
-        return a tuple: img, label
-        """
-        raise NotImplementedError('SuperTuxDataset.__getitem__')
+        return self.data[idx]
 
 
 def load_data(dataset_path, num_workers=0, batch_size=128):
