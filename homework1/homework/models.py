@@ -4,57 +4,40 @@ import torch.nn.functional as F
 
 class ClassificationLoss(torch.nn.Module):
     def forward(self, input, target):
-        """
-        Your code here
-
-        Compute mean(-log(softmax(input)_label))
-
-        @input:  torch.Tensor((B,C))
-        @target: torch.Tensor((B,), dtype=torch.int64)
-
-        @return:  torch.Tensor((,))
-
-        Hint: Don't be too fancy, this is a one-liner
-        """
-        raise NotImplementedError('ClassificationLoss.forward')
+        return F.nll_loss(F.log_softmax(input), target)
 
 
 class LinearClassifier(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        """
-        Your code here
-        """
-        raise NotImplementedError('LinearClassifier.__init__')
+        input_size = (3*64*64)
+        output_size = (6)
+        self.linear = torch.nn.Linear(input_size, output_size)
+
 
     def forward(self, x):
         """
-        Your code here
-
         @x: torch.Tensor((B,3,64,64))
         @return: torch.Tensor((B,6))
         """
-        raise NotImplementedError('LinearClassifier.forward')
+        return self.linear(x.view(x.size(0), -1))
+
+
 
 
 class MLPClassifier(torch.nn.Module):
     def __init__(self):
         super().__init__()
-
-        """
-        Your code here
-        """
-        raise NotImplementedError('MLPClassifier.__init__')
+        hidden_size = 100
+        input_size = (3*64*64)
+        output_size = (6)
+        self.linear1 = torch.nn.Linear(input_size, hidden_size)
+        self.linear2 = torch.nn.Linear(hidden_size, output_size)
+        self.activation = torch.nn.ReLU()
 
     def forward(self, x):
-        """
-        Your code here
-
-        @x: torch.Tensor((B,3,64,64))
-        @return: torch.Tensor((B,6))
-        """
-        raise NotImplementedError('MLPClassifier.forward')
+        return self.linear2(self.activation(self.linear1(x.view(x.size(0), -1))))
 
 
 model_factory = {
