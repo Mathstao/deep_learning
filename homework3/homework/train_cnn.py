@@ -6,7 +6,8 @@ from os import path
 
 
 def train(args):
-    model = CNNClassifier()
+    #model = CNNClassifier()
+    model = customCNN()
 
     # setup GPU
     device = torch.device(
