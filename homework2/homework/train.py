@@ -37,10 +37,6 @@ def train(args):
         model.train()
         loss_vals, acc_vals, vacc_vals = [], [], []
         for img, label in train_data:
-            if global_step % 10:
-                print("Global Step:", global_step)
-                if len(acc_vals) > 0:
-                    print("Accuracy", acc_vals[-1])
             img, label = img.to(device), label.to(device)
             logit = model(img)
             loss_val = loss(logit, label)
