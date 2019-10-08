@@ -37,7 +37,6 @@ class CNNClassifier(torch.nn.Module):
         @return: torch.Tensor((B,6))
         Hint: Apply input normalization inside the network, to make sure it is applied in the grader
         """
-        raise NotImplementedError('CNNClassifier.forward')
 
 
 class FCN(torch.nn.Module):
