@@ -5,8 +5,8 @@ import torch.utils.tensorboard as tb
 from os import path
 
 
-def train(args, model):
-
+def train(args):
+    model = CNNClassifier()
     # setup GPU
     device = torch.device(
         'cuda') if torch.cuda.is_available() else torch.device('cpu')

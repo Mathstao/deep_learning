@@ -4,43 +4,47 @@ import torch.nn.functional as F
 
 class CNNClassifier(torch.nn.Module):
     class Block(torch.nn.Module):
-        def __init__(self, n_input, n_output, stride=1):
+        def __init__(self, n_input, n_output, index, stride=1):
             super().__init__()
-            self.net = torch.nn.Sequential(
+            L = [
                 torch.nn.Conv2d(n_input, n_output, kernel_size=3,
                                 padding=1, stride=stride, bias=False),
                 torch.nn.BatchNorm2d(n_output),
-                torch.nn.ReLU(),
-                torch.nn.Conv2d(n_output, n_output, kernel_size=3,
-                                padding=1, bias=False),
-                torch.nn.BatchNorm2d(n_output),
-                torch.nn.ReLU()
-            )
+                torch.nn.ReLU(inplace=True),
+            ]
+            if index < 2:
+                L.append(torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+
+            self.net = torch.nn.Sequential(*L)
+            """
             self.downsample = None
             if stride != 1 or n_input != n_output:
-                self.downsample = torch.nn.Sequential(torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride),
+                self.downsample = torch.nn.Sequential(torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride, padding=1),
                                                         torch.nn.BatchNorm2d(n_output))
-
+                """
         def forward(self, x):
+            """
             identity = x
             if self.downsample is not None:
                 identity = self.downsample(identity)
             return self.net(x) + identity
+            """
+            return self.net(x)
 
-    def __init__(self, layers=[32,64,128], n_input_channels=3):
+    def __init__(self, layers=[64,192,384], n_input_channels=3):
         super().__init__()
-        L = [torch.nn.Conv2d(n_input_channels, 32, kernel_size=7, padding=3, stride=2, bias=False),
-            torch.nn.BatchNorm2d(32),
-            torch.nn.ReLU(),
+        L = [torch.nn.Conv2d(n_input_channels, layers[0], kernel_size=7, padding=3, stride=2, bias=False),
+            torch.nn.BatchNorm2d(layers[0]),
+            torch.nn.ReLU(inplace=True),
             torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
             ]
-        c = 32
-        for l in layers:
-            L.append(self.Block(c, l, stride=2))
+        c = layers[0]
+        for i, l in enumerate(layers):
+            L.append(self.Block(c, l, i, stride=2))
             c = l
 
         # add dropout before fully connected layer
-        L.append(torch.nn.Dropout())
+        # L.append(torch.nn.Dropout())
         self.network = torch.nn.Sequential(*L)
         # final layer
         self.classifier = torch.nn.Linear(c, 6)
