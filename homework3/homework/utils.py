@@ -67,7 +67,7 @@ class DenseSuperTuxDataset(Dataset):
 def load_data(dataset_path, num_workers=0, batch_size=128, **kwargs):
     transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.ColorJitter(hue=.05, saturation=.05),
+        transforms.ColorJitter(brightness=1, contrast=1, saturation=1, hue=1),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(20, resample=Image.BILINEAR),
         transforms.ToTensor()
