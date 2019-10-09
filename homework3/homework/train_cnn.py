@@ -5,7 +5,9 @@ import torch.utils.tensorboard as tb
 from os import path
 
 
-def train(args, model=CNNClassifier()):
+def train(args, model=None):
+    if model is None:
+        model = CNNClassifier()
 
     # setup GPU
     device = torch.device(
