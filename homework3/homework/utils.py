@@ -39,7 +39,8 @@ class SuperTuxDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.data[idx]
-        item = self.transform(idx)
+        if self.transform is not None:
+            item = self.transform(item)
         return item
 
 
