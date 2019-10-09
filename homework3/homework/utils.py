@@ -14,7 +14,7 @@ DENSE_CLASS_DISTRIBUTION = [0.52683655, 0.02929112, 0.4352989, 0.0044619, 0.0041
 
 
 class SuperTuxDataset(Dataset):
-    def __init__(self, dataset_path, transform):
+    def __init__(self, dataset_path, transform=None):
         import csv
         from os import path
         tensor_path = path.join(dataset_path, "data.pt")
@@ -40,7 +40,7 @@ class SuperTuxDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         if self.transform is not None:
-            item = self.transform(item)
+            item[0] = self.transform(item[0])
         return item
 
 
