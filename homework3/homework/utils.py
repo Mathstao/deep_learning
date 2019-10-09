@@ -40,7 +40,9 @@ class SuperTuxDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         if self.transform is not None:
-            item[0] = self.transform(item[0])
+            img, label = item
+            img = self.transform(img)
+            item = (img, label)
         return item
 
 
@@ -66,7 +68,6 @@ class DenseSuperTuxDataset(Dataset):
 
 
 def load_data(dataset_path, num_workers=0, batch_size=128, **kwargs):
-    """
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.ColorJitter(),
@@ -74,8 +75,7 @@ def load_data(dataset_path, num_workers=0, batch_size=128, **kwargs):
         transforms.RandomRotation(20, resample=Image.BILINEAR),
         transforms.ToTensor()
     ])
-    """
-    dataset = SuperTuxDataset(dataset_path, **kwargs)
+    dataset = SuperTuxDataset(dataset_path, transform, **kwargs)
     return DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, shuffle=True, drop_last=True)
 
 
