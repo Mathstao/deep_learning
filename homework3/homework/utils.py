@@ -14,7 +14,7 @@ DENSE_CLASS_DISTRIBUTION = [0.52683655, 0.02929112, 0.4352989, 0.0044619, 0.0041
 
 
 class SuperTuxDataset(Dataset):
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path, transform):
         import csv
         from os import path
         tensor_path = path.join(dataset_path, "data.pt")
@@ -32,11 +32,15 @@ class SuperTuxDataset(Dataset):
                         self.data.append((to_tensor(image), label_id))
             torch.save(self.data, tensor_path)
 
+        self.transform = transform
+
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-       return self.data[idx]
+        item = self.data[idx]
+        item = self.transform(idx)
+        return item
 
 
 class DenseSuperTuxDataset(Dataset):
@@ -61,7 +65,14 @@ class DenseSuperTuxDataset(Dataset):
 
 
 def load_data(dataset_path, num_workers=0, batch_size=128, **kwargs):
-    dataset = SuperTuxDataset(dataset_path, **kwargs)
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.ColorJitter(hue=.05, saturation=.05),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(20, resample=Image.BILINEAR),
+        transforms.ToTensor()
+    ])
+    dataset = SuperTuxDataset(dataset_path, transform, **kwargs)
     return DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, shuffle=True, drop_last=True)
 
 

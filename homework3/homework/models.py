@@ -28,6 +28,8 @@ class CNNClassifier(torch.nn.Module):
         self.classifier = torch.nn.Linear(c, num_classes)
 
     def forward(self, x):
+        # normalize x before feeding it to the network
+
         z = self.network(x)
         z = z.mean(dim=[2,3])
         return self.classifier(z)
