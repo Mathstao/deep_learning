@@ -1,12 +1,15 @@
-from .models import CNNClassifier, save_model
-from .utils import accuracy, load_data
+from .models import CNNClassifier, save_model, model_factory
+from .utils import accuracy, load_data, load_dense_data
 import torch
 import torch.utils.tensorboard as tb
 from os import path
 
 
 def train(args):
-    model = CNNClassifier()
+
+    # create model
+    model = model_factory[args.model]()
+
     # setup GPU
     device = torch.device(
         'cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -24,11 +27,18 @@ def train(args):
     # define optimizer and loss function
     optimizer = torch.optim.SGD(
         model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=args.weight_decay)
+
     loss = torch.nn.CrossEntropyLoss()
 
     # get data
-    train_data = load_data('../data/train')
-    valid_data = load_data('../data/valid')
+    if args.model == 'cnn':
+        train_data = load_data('data/train')
+        valid_data = load_data('data/valid')
+    else:
+        train_data = load_dense_data('dense_data/train')
+        valid_data = load_dense_data('dense_data/valid')
+
+    print("Starting Training for", args.model, "model...")
 
     global_step = 0
     # begin training
@@ -38,7 +48,7 @@ def train(args):
         for img, label in train_data:
             img, label = img.to(device), label.to(device)
             logit = model(img)
-            loss_val = loss(logit, label)
+            loss_val = loss(logit, label.long())
             acc_val = accuracy(logit, label)
 
             loss_vals.append(loss_val.detach().cpu().numpy())
@@ -76,6 +86,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--log_dir')
+    parser.add_argument(
+        '-m', '--model', choices=['cnn', 'fcn'], default='cnn')
     parser.add_argument('-n', '--num_epoch', type=int, default=50)
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3)
     parser.add_argument('-wd', '--weight_decay', type=float, default=1e-4)

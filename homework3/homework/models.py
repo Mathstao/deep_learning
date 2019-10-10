@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from .utils import _one_hot
 
 
 class CNNClassifier(torch.nn.Module):
@@ -55,8 +56,20 @@ class CNNClassifier(torch.nn.Module):
         return self.classifier(z)
 
 class FCN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, n_input_channels=3):
         super().__init__()
+        # block 1
+        num_classes = 5
+        kernel_size = 7
+        padding = kernel_size // 2
+        conv1 = torch.nn.Conv2d(
+            n_input_channels, num_classes, kernel_size=kernel_size, padding=padding, stride=1, bias=False)
+        bn1 = torch.nn.BatchNorm2d(num_classes)
+        relu1 = torch.nn.ReLU(inplace=True)
+        #  block 2
+
+        L = [conv1, bn1, relu1]
+        self.net = torch.nn.Sequential(*L)
         """
         Your code here.
         Hint: The FCN can be a bit smaller the the CNNClassifier since you need to run it at a higher resolution
@@ -65,7 +78,6 @@ class FCN(torch.nn.Module):
         Hint: Use residual connections
         Hint: Always pad by kernel_size / 2, use an odd kernel_size
         """
-        raise NotImplementedError('FCN.__init__')
 
     def forward(self, x):
         """
@@ -77,7 +89,15 @@ class FCN(torch.nn.Module):
               if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
               convolution
         """
-        raise NotImplementedError('FCN.forward')
+        print("X SHAPE:", x.shape)
+        z = self.net(x)
+        """
+        pred = _one_hot(z, z.shape)
+        print("Pred SHAPE", pred.shape)
+        print("Pred Type", pred.dtype)
+        """
+        print("Z SHAPE", z.shape)
+        return z
 
 
 model_factory = {
