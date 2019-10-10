@@ -89,14 +89,7 @@ class FCN(torch.nn.Module):
               if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
               convolution
         """
-        print("X SHAPE:", x.shape)
         z = self.net(x)
-        """
-        pred = _one_hot(z, z.shape)
-        print("Pred SHAPE", pred.shape)
-        print("Pred Type", pred.dtype)
-        """
-        print("Z SHAPE", z.shape)
         return z
 
 
