@@ -5,10 +5,10 @@ import torch.utils.tensorboard as tb
 from os import path
 
 
-def train(args):
+def train(args, model):
 
     # create model
-    model = model_factory[args.model]()
+    # model = model_factory[args.model]()
 
     # setup GPU
     device = torch.device(
