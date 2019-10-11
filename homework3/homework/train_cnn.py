@@ -1,11 +1,11 @@
-from .models import CNNClassifier, save_model, model_factory
-from .utils import accuracy, load_data, load_dense_data
+from .models import CNNClassifier, save_model, model_factory, FCN, CNNClassifier
+from .utils import accuracy, load_data, load_dense_data, ConfusionMatrix
 import torch
 import torch.utils.tensorboard as tb
 from os import path
 
 
-def train(args, model):
+def train(args, model=FCN()):
 
     # create model
     # model = model_factory[args.model]()

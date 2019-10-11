@@ -62,13 +62,19 @@ class FCN(torch.nn.Module):
         num_classes = 5
         kernel_size = 7
         padding = kernel_size // 2
-        conv1 = torch.nn.Conv2d(
-            n_input_channels, num_classes, kernel_size=kernel_size, padding=padding, stride=1, bias=False)
-        bn1 = torch.nn.BatchNorm2d(num_classes)
+        conv1 = torch.nn.Conv2d(n_input_channels, 16, kernel_size=kernel_size, padding=padding, stride=1, bias=False)
+        bn1 = torch.nn.BatchNorm2d(16)
         relu1 = torch.nn.ReLU(inplace=True)
-        #  block 2
 
-        L = [conv1, bn1, relu1]
+
+        #  block 2
+        kernel_size = 3
+        padding = kernel_size // 2
+        conv2 = torch.nn.Conv2d(16, num_classes, kernel_size=kernel_size, padding=padding, stride=1, bias=False)
+        bn2 = torch.nn.BatchNorm2d(num_classes)
+        relu2 = torch.nn.ReLU(inplace=True)
+
+        L = [conv1, bn1, relu1, conv2, bn2, relu2]
         self.net = torch.nn.Sequential(*L)
         """
         Your code here.
@@ -86,8 +92,8 @@ class FCN(torch.nn.Module):
         @return: torch.Tensor((B,6,H,W))
         Hint: Apply input normalization inside the network, to make sure it is applied in the grader
         Hint: Input and output resolutions need to match, use output_padding in up-convolutions, crop the output
-              if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
-              convolution
+            if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
+            convolution
         """
         z = self.net(x)
         return z
