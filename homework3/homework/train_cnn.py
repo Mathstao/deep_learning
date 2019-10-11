@@ -25,8 +25,8 @@ def train(args, model=FCN()):
     valid_logger = tb.SummaryWriter('logs/valid')
 
     # define optimizer and loss function
-    optimizer = torch.optim.SGD(
-        model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(
+        model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     loss = torch.nn.CrossEntropyLoss()
 
