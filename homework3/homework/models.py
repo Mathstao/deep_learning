@@ -56,87 +56,56 @@ class CNNClassifier(torch.nn.Module):
         return self.classifier(z)
 
 class FCN(torch.nn.Module):
-  class Block(torch.nn.Module):
-    def __init__(self, n_input, n_output, index, stride=1):
+    class Block(torch.nn.Module):
+        def __init__(self, n_input, n_output, index, stride=1):
+            super().__init__()
+            L = [
+                torch.nn.Conv2d(n_input, n_output, kernel_size=3,
+                                padding=1, stride=stride, bias=False),
+                torch.nn.BatchNorm2d(n_output),
+                torch.nn.ReLU(inplace=True),
+            ]
+            if index < 2:
+                L.append(torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1))
+
+            self.net = torch.nn.Sequential(*L)
+
+        def forward(self, x):
+            return self.net(x)
+
+
+    def __init__(self, layers=[64,128,256], n_input_channels=3):
         super().__init__()
-        L = [
-            torch.nn.Conv2d(n_input, n_output, kernel_size=3,
-                            padding=1, stride=stride, bias=False),
-            torch.nn.BatchNorm2d(n_output),
+        num_classes = 5
+        L = [torch.nn.Conv2d(n_input_channels, layers[0], kernel_size=7, padding=3, stride=2, bias=False),
+            torch.nn.BatchNorm2d(layers[0]),
             torch.nn.ReLU(inplace=True),
-        ]
-        if index < 2:
-            L.append(torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1))
+            torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+            ]
+        c = layers[0]
+        for i, l in enumerate(layers):
+            L.append(self.Block(c, l, i, stride=2))
+            c = l
+
+        # output channels layer
+        L.append(torch.nn.Conv2d(layers[-1], num_classes, kernel_size=1))
+        L.append(torch.nn.BatchNorm2d(num_classes))
+
+
+        # final layer
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
+        L.append(torch.nn.BatchNorm2d(num_classes))
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
+        L.append(torch.nn.BatchNorm2d(num_classes))
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
+        L.append(torch.nn.BatchNorm2d(num_classes))
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
 
         self.net = torch.nn.Sequential(*L)
-        """
-        self.downsample = None
-        if stride != 1 or n_input != n_output:
-            self.downsample = torch.nn.Sequential(torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride, padding=1),
-                                                    torch.nn.BatchNorm2d(n_output))
-        """
 
     def forward(self, x):
-        """
-        identity = x
-        if self.downsample is not None:
-            identity = self.downsample(identity)
-        return self.net(x) + identity
-        """
-        return self.net(x)
-
-  def __init__(self, layers=[32, 94], n_input_channels=3):
-      super().__init__()
-      num_classes = 5
-      L = [torch.nn.Conv2d(n_input_channels, layers[0], kernel_size=7, padding=3, stride=2, bias=False),
-           torch.nn.BatchNorm2d(layers[0]),
-           torch.nn.ReLU(inplace=True),
-           torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
-           ]
-      c = layers[0]
-      for i, l in enumerate(layers):
-          L.append(self.Block(c, l, i, stride=2))
-          c = l
-
-      # output channels layer
-      L.append(torch.nn.Conv2d(layers[-1], num_classes, kernel_size=1))
-      L.append(torch.nn.BatchNorm2d(num_classes))
-
-      # final layer
-      L.append(torch.nn.ConvTranspose2d(
-          5, 5, kernel_size=4, stride=2, padding=1))
-      L.append(torch.nn.BatchNorm2d(num_classes))
-      L.append(torch.nn.ConvTranspose2d(
-          5, 5, kernel_size=4, stride=2, padding=1))
-      L.append(torch.nn.BatchNorm2d(num_classes))
-      L.append(torch.nn.ConvTranspose2d(
-          5, 5, kernel_size=4, stride=2, padding=1))
-      L.append(torch.nn.BatchNorm2d(num_classes))
-
-      self.net = torch.nn.Sequential(*L)
-      """
-      Your code here.
-      Hint: The FCN can be a bit smaller the the CNNClassifier since you need to run it at a higher resolution
-      Hint: Use up-convolutions
-      Hint: Use skip connections
-      Hint: Use residual connections
-      Hint: Always pad by kernel_size / 2, use an odd kernel_size
-      """
-
-  def forward(self, x):
-      """
-      Your code here
-      @x: torch.Tensor((B,3,H,W))
-      @return: torch.Tensor((B,6,H,W))
-      Hint: Apply input normalization inside the network, to make sure it is applied in the grader
-      Hint: Input and output resolutions need to match, use output_padding in up-convolutions, crop the output
-            if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
-            convolution
-      """
-      z = self.net(x)
-      return z
-
-
+        z = self.net(x)
+        return z
 
 
 model_factory = {
