@@ -85,7 +85,12 @@ def accuracy(outputs, labels):
 
 
 def load_dense_data(dataset_path, num_workers=0, batch_size=32, **kwargs):
-    dataset = DenseSuperTuxDataset(dataset_path, **kwargs)
+    transform = transforms.Compose([
+        transforms.ColorJitter(brightness=0.25, contrast=0.25),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor()
+    ])
+    dataset = DenseSuperTuxDataset(dataset_path, transform, **kwargs)
     return DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, shuffle=True, drop_last=True)
 
 

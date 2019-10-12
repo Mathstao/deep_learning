@@ -57,7 +57,7 @@ class CNNClassifier(torch.nn.Module):
 
 class FCN(torch.nn.Module):
     class Block(torch.nn.Module):
-        def __init__(self, n_input, n_output, index, stride=1):
+        def __init__(self, n_input, n_output, index, stride=2):
             super().__init__()
             L = [
                 torch.nn.Conv2d(n_input, n_output, kernel_size=3,
@@ -65,8 +65,6 @@ class FCN(torch.nn.Module):
                 torch.nn.BatchNorm2d(n_output),
                 torch.nn.ReLU(inplace=True),
             ]
-            if index < 2:
-                L.append(torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1))
 
             self.net = torch.nn.Sequential(*L)
 
@@ -74,13 +72,12 @@ class FCN(torch.nn.Module):
             return self.net(x)
 
 
-    def __init__(self, layers=[64,128,256], n_input_channels=3):
+    def __init__(self, layers=[64,192], n_input_channels=3):
         super().__init__()
         num_classes = 5
         L = [torch.nn.Conv2d(n_input_channels, layers[0], kernel_size=7, padding=3, stride=2, bias=False),
             torch.nn.BatchNorm2d(layers[0]),
             torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
             ]
         c = layers[0]
         for i, l in enumerate(layers):
@@ -88,23 +85,24 @@ class FCN(torch.nn.Module):
             c = l
 
         # output channels layer
-        L.append(torch.nn.Conv2d(layers[-1], num_classes, kernel_size=1))
+        L.append(torch.nn.Conv2d(layers[-1], num_classes, kernel_size=1, stride=1))
         L.append(torch.nn.BatchNorm2d(num_classes))
 
 
         # final layer
-        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=(7,7), stride=(2,2), padding=(3,3), output_padding=1))
         L.append(torch.nn.BatchNorm2d(num_classes))
-        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=(3,3), stride=(2,2), padding=(1,1), output_padding=1))
         L.append(torch.nn.BatchNorm2d(num_classes))
-        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
-        L.append(torch.nn.BatchNorm2d(num_classes))
-        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=4, stride=2, padding=1))
+        L.append(torch.nn.ConvTranspose2d(5, 5, kernel_size=(3,3), stride=(2,2), padding=(1,1), output_padding=1))
 
         self.net = torch.nn.Sequential(*L)
 
     def forward(self, x):
         z = self.net(x)
+        H = x.shape[2]
+        W = x.shape[3]
+        z = z[:, :, :H, :W]
         return z
 
 
