@@ -8,7 +8,7 @@ from os import path
 def train(args, model=FCN()):
 
     # create model
-    # model = model_factory[args.model]()
+    model = model_factory[args.model]()
 
     # setup GPU
     device = torch.device(
