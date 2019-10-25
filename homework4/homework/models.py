@@ -108,19 +108,7 @@ class Detector(torch.nn.Module):
 
 
     def detect(self, image):
-        # you're using extract_peak applied to three channels somehow
-        # with k/max_det being 100
-        """
-           Your code here.
-           Implement object detection here.
-           @image: 3 x H x W image
-           @return: List of detections [(class_id, score, cx, cy), ...],
-                    return no more than 100 detections per image
-           Hint: Use extract_peak here
-        """
-        # call extract_peak on each channel, inserting its class_id (the channel num)
-        # append to single list and return
-        # 100 detections are divided between the three classes?
+
         global_peaks = []
         num_classes = 3
         for i in range(num_classes):
@@ -128,29 +116,12 @@ class Detector(torch.nn.Module):
             peaks = extract_peak(image[i, :, :])
             for score, cx, cy in peaks:
                 # append class_id to each tuple to each class
-                global_peaks.append((int(i), float(score), int(cx), int(cy)))
+                global_peaks.append((int(i), float(score), int(cy), int(cx)))
         global_peaks.sort(key=lambda tup: tup[1], reverse=True)
         if len(global_peaks) < 100:
             return global_peaks
         else:
             return global_peaks[:100]
-        """
-        global_peaks = torch.tensor(global_peaks)
-        print(global_peaks)
-        # get top 100 peaks based on score
-        k = 100
-        if len(global_peaks) < k:
-            k = len(global_peaks)
-            print("Updated K")
-        results, indices = torch.topk(global_peaks, k)
-        top_peaks = []
-        for result in results:
-            top_peaks.append(result[0], result[1], result[2], result[3])
-
-        # return List of detections [(class_id, score, cx, cy), ...],
-        return top_peaks
-        """
-
 
 
     def detect_with_size(self, image):

@@ -27,16 +27,6 @@ def train(args):
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
 
-    #TODO: resolve how to collect num_neg_samples and num_pos_samples
-    # w = torch.as_tensor(DENSE_CLASS_DISTRIBUTION)**(-args.gamma)
-    # loss = torch.nn.CrossEntropyLoss(weight=w / w.mean()).to(device)
-    """
-    pos_weight = num_neg_samples / num_pos_samples
-    pos_weight = torch.tensor(pos_weight)
-    pos_weight = pos_weight.reshape(1, 3, 1, 1)
-    loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    """
-
     # load and transform data
     import inspect
     transform = eval(args.transform, {k: v for k, v in inspect.getmembers(
@@ -53,58 +43,29 @@ def train(args):
     global_step = 0
     for epoch in range(args.num_epoch):
         model.train()
-        # conf = ConfusionMatrix()
         for img, det_map, size_map in train_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            # neg / pos
-            # loss of all ones is 1 - pos / total
-            # loss of all zeros is 1 - neg / total
-            # pos_weight = get_pos_weight(logit, det_map.float())
             loss_val = loss(logit, det_map.float())
-            loss_val = loss_val * (1 - torch.exp(-1 * loss_val))
+            gamma = 2.0
+            loss_val = loss_val * torch.pow((1 - torch.exp(-1 * loss_val)), gamma)
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
-            # conf.add(logit.argmax(1), det_map)
 
             optimizer.zero_grad()
             loss_val.backward()
             optimizer.step()
             global_step += 1
-
-        """
-        if train_logger:
-            train_logger.add_scalar('global_accuracy', conf.global_accuracy, global_step)
-            train_logger.add_scalar('average_accuracy', conf.average_accuracy, global_step)
-            train_logger.add_scalar('iou', conf.iou, global_step)
         """
         model.eval()
-        # val_conf = ConfusionMatrix()
         for img, det_map, size_map in valid_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            # val_conf.add(logit.argmax(1), det_map)
-
-        #if valid_logger:
-            #valid_logger.add_scalar('global_accuracy', val_conf.global_accuracy, global_step)
-            #valid_logger.add_scalar('average_accuracy', val_conf.average_accuracy, global_step)
-            #valid_logger.add_scalar('iou', val_conf.iou, global_step)
-
-        #if valid_logger is None or train_logger is None:
-            # print('epoch %-3d \t acc = %0.3f \t val acc = %0.3f \t iou = %0.3f \t val iou = %0.3f' %
-                  # (epoch, conf.global_accuracy, val_conf.global_accuracy, conf.iou, val_conf.iou))
-
+        """
         print("Completed Epoch: ", epoch)
 
     save_model(model)
-
-def get_pos_weight(logit, det_map):
-    # (32 x 3 x 96 x 128)
-    all_pos = torch.ones(int(det_map.size()[0]), det_map.size()[
-                         1], int(det_map.size()[2]), int(det_map.size()[3]))
-    all_neg = torch.zeros(det_map.size()[0], det_map.size()[1], det_map.size()[
-                         2], det_map.size()[3])
 
 if __name__ == '__main__':
     import argparse
