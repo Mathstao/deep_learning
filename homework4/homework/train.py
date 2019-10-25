@@ -36,6 +36,7 @@ def train(args):
     loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     """
     loss = torch.nn.BCEWithLogitsLoss()
+
     # load and transform data
     import inspect
     transform = eval(args.transform, {k: v for k, v in inspect.getmembers(
@@ -43,8 +44,8 @@ def train(args):
     train_data = load_detection_data(
         'dense_data/train', num_workers=4, transform=transform)
     # convert val images to heatmaps
-    transform = dense_transforms.Compose([dense_transforms.ToHeatmap(),
-                         dense_transforms.ToTensor()])
+    transform = dense_transforms.Compose(
+        [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
     global_step = 0
