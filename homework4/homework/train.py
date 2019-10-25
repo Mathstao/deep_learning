@@ -62,7 +62,7 @@ def train(args):
             # loss of all zeros is 1 - neg / total
             # pos_weight = get_pos_weight(logit, det_map.float())
             loss_val = loss(logit, det_map.float())
-            loss_val = torch.exp(-1 * loss_val)
+            loss_val = loss_val * (1 - torch.exp(-1 * loss_val))
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
