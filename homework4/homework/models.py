@@ -154,7 +154,7 @@ if __name__ == '__main__':
     Shows detections of your detector
     """
     from .utils import DetectionSuperTuxDataset
-    dataset = DetectionSuperTuxDataset('short_dense_data/valid', min_size=0)
+    dataset = DetectionSuperTuxDataset('dense_data/valid', min_size=0)
     import torchvision.transforms.functional as TF
     from pylab import show, subplots
     import matplotlib.patches as patches
