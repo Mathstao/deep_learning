@@ -75,7 +75,7 @@ def train(args):
 
         model.eval()
         val_conf = ConfusionMatrix()
-        for img, det_map in valid_data:
+        for img, det_map, size_map in valid_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
             val_conf.add(logit.argmax(1), det_map)
