@@ -113,7 +113,7 @@ class Detector(torch.nn.Module):
         num_classes = 3
         for i in range(num_classes):
             # call peak detection on each class
-            peaks = extract_peak(heatmap[i, :, :])
+            peaks = extract_peak(heatmap[0, i, :, :])
             for score, cx, cy in peaks:
                 # append class_id to each tuple to each class
                 global_peaks.append((int(i), float(score), int(cx), int(cy)))
