@@ -19,12 +19,8 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     heatmap_pool = heatmap_pool[0, 0, :, :]
 
     # get coordinates of actual max by comparing input
-    for i in range(h):
-        for j in range(w):
-            orig_val = heatmap[i, j]
-            pool_val = heatmap_pool[i, j]
-            if orig_val != pool_val:
-                heatmap_pool[i, j] = 0
+    cmp_result = torch.eq(heatmap, heatmap_pool).float()
+    heatmap_pool = cmp_result * heatmap_pool
 
     heatmap_pool = torch.flatten(heatmap_pool)
 

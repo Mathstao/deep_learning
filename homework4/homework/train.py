@@ -55,6 +55,9 @@ def train(args):
         for img, det_map, size_map in train_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
+            # neg / pos
+            # loss of all ones is 1 - pos / total
+            # loss of all zeros is 1 - neg / total
             loss_val = loss(logit, det_map.float())
 
             if train_logger is not None:
@@ -84,10 +87,11 @@ def train(args):
             #valid_logger.add_scalar('average_accuracy', val_conf.average_accuracy, global_step)
             #valid_logger.add_scalar('iou', val_conf.iou, global_step)
 
-        if valid_logger is None or train_logger is None:
+        #if valid_logger is None or train_logger is None:
             # print('epoch %-3d \t acc = %0.3f \t val acc = %0.3f \t iou = %0.3f \t val iou = %0.3f' %
                   # (epoch, conf.global_accuracy, val_conf.global_accuracy, conf.iou, val_conf.iou))
-            print("Completed Epoch: ", epoch)
+
+        print("Completed Epoch: ", epoch)
 
     save_model(model)
 
