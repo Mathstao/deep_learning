@@ -29,11 +29,13 @@ def train(args):
     #TODO: resolve how to collect num_neg_samples and num_pos_samples
     # w = torch.as_tensor(DENSE_CLASS_DISTRIBUTION)**(-args.gamma)
     # loss = torch.nn.CrossEntropyLoss(weight=w / w.mean()).to(device)
+    """
     pos_weight = num_neg_samples / num_pos_samples
     pos_weight = torch.tensor(pos_weight)
     pos_weight = pos_weight.reshape(1, 3, 1, 1)
     loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-
+    """
+    loss = torch.nn.BCEWithLogitsLoss()
     # load and transform data
     import inspect
     transform = eval(args.transform, {k: v for k, v in inspect.getmembers(
@@ -49,15 +51,14 @@ def train(args):
     for epoch in range(args.num_epoch):
         model.train()
         conf = ConfusionMatrix()
-        for img, label in train_data:
-            img, label = img.to(device), label.to(device).long()
-
+        for img, det_map, size_map in train_data:
+            img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            loss_val = loss(logit, label)
+            loss_val = loss(logit, det_map.float())
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
-            conf.add(logit.argmax(1), label)
+            # conf.add(logit.argmax(1), det_map)
 
             optimizer.zero_grad()
             loss_val.backward()
@@ -73,10 +74,10 @@ def train(args):
 
         model.eval()
         val_conf = ConfusionMatrix()
-        for img, label in valid_data:
-            img, label = img.to(device), label.to(device).long()
+        for img, det_map in valid_data:
+            img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            val_conf.add(logit.argmax(1), label)
+            val_conf.add(logit.argmax(1), det_map)
 
         if valid_logger:
             valid_logger.add_scalar(
@@ -103,7 +104,7 @@ if __name__ == '__main__':
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-2)
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-t', '--transform',
-                        default='Compose([ColorJitter(0.9, 0.9, 0.9, 0.1), RandomHorizontalFlip(), ToHeatmap(), ToTensor()])')
+                        default='Compose([ToTensor(), ToHeatmap()])')
     # Winner: python3 -m solution.train_cnn -t "Compose([ColorJitter(0.5, 0.3, 0.2), RandomHorizontalFlip(), ToTensor()])" -lr 1e-2  --log_dir log/res_k3_flip_norm_color_deeper_nodrop_long/ -n 150
     args = parser.parse_args()
     train(args)
