@@ -129,19 +129,31 @@ class Detector(torch.nn.Module):
         num_classes = 3
         for i in range(num_classes):
             # call peak detection on each class
-            peaks = extract_peak(image[0, i, :, :])
+            peaks = extract_peak(image[i, :, :])
             for score, cx, cy in peaks:
                 # append class_id to each tuple to each class
-                global_peaks.append([i, score, cx, cy])
+                global_peaks.append((int(i), float(score), int(cx), int(cy)))
+        global_peaks.sort(key=lambda tup: tup[1])
+        if len(global_peaks) < 100:
+            return global_peaks
+        else:
+            return global_peaks[:100]
+        """
         global_peaks = torch.tensor(global_peaks)
+        print(global_peaks)
         # get top 100 peaks based on score
-        results, indices = torch.topk(global_peaks, 100, dim=1)
+        k = 100
+        if len(global_peaks) < k:
+            k = len(global_peaks)
+            print("Updated K")
+        results, indices = torch.topk(global_peaks, k)
         top_peaks = []
         for result in results:
             top_peaks.append(result[0], result[1], result[2], result[3])
 
         # return List of detections [(class_id, score, cx, cy), ...],
         return top_peaks
+        """
 
 
 
