@@ -32,11 +32,11 @@ def train(args):
     transform = eval(args.transform, {k: v for k, v in inspect.getmembers(
         dense_transforms) if inspect.isclass(v)})
     train_data = load_detection_data(
-        'dense_data/train', num_workers=4, transform=transform)
+        'short_dense_data/train', num_workers=4, transform=transform)
     # convert val images to heatmaps
     transform = dense_transforms.Compose(
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
-    valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
+    valid_data = load_detection_data('short_dense_data/valid', num_workers=4, transform=transform)
 
     loss = torch.nn.BCEWithLogitsLoss()
 
@@ -51,7 +51,7 @@ def train(args):
             gamma = 2.0
             loss_val = loss_val * torch.pow((1 - torch.exp(-1 * loss_val)), gamma)
             """
-            loss_val = loss_val * (1 - torch.exp(-1 * loss_val))
+            # loss_val = loss_val * (1 - torch.exp(-1 * loss_val))
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
 

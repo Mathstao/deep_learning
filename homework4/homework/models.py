@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import matplotlib as plt
 
 def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
 
@@ -107,13 +108,11 @@ class Detector(torch.nn.Module):
 
 
     def detect(self, image):
-
-        heatmap = self.forward(image)
+        heatmap = self.forward(image).data[0]
         global_peaks = []
-        num_classes = 3
-        for i in range(num_classes):
+        for i in range(3):
             # call peak detection on each class
-            peaks = extract_peak(heatmap[0, i, :, :])
+            peaks = extract_peak(heatmap[i, :, :])
             for score, cx, cy in peaks:
                 # append class_id to each tuple to each class
                 global_peaks.append((int(i), float(score), int(cx), int(cy)))
@@ -155,7 +154,7 @@ if __name__ == '__main__':
     Shows detections of your detector
     """
     from .utils import DetectionSuperTuxDataset
-    dataset = DetectionSuperTuxDataset('dense_data/valid', min_size=0)
+    dataset = DetectionSuperTuxDataset('short_dense_data/valid', min_size=0)
     import torchvision.transforms.functional as TF
     from pylab import show, subplots
     import matplotlib.patches as patches

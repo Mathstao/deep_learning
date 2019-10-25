@@ -94,7 +94,7 @@ class ConfusionMatrix(object):
 
 
 if __name__ == '__main__':
-    dataset = DetectionSuperTuxDataset('dense_data/train')
+    dataset = DetectionSuperTuxDataset('short_short_dense_data/train')
     import torchvision.transforms.functional as F
     from pylab import show, subplots
     import matplotlib.patches as patches
@@ -114,7 +114,7 @@ if __name__ == '__main__':
             ax.add_patch(
                 patches.Rectangle((k[0] - 0.5, k[1] - 0.5), k[2] - k[0], k[3] - k[1], fc='none', ec='b', lw=2))
         ax.axis('off')
-    dataset = DetectionSuperTuxDataset('dense_data/train',
+    dataset = DetectionSuperTuxDataset('short_dense_data/train',
                                        transform=dense_transforms.Compose([dense_transforms.RandomHorizontalFlip(0),
                                                                            dense_transforms.ToTensor(),
                                                                            dense_transforms.to_heatmap]))
