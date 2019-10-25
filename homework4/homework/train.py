@@ -47,9 +47,11 @@ def train(args):
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
             loss_val = loss(logit, det_map.float())
-            # gamma = 2.0
-            # loss_val = loss_val * torch.pow((1 - torch.exp(-1 * loss_val)), gamma)
-
+            """
+            gamma = 2.0
+            loss_val = loss_val * torch.pow((1 - torch.exp(-1 * loss_val)), gamma)
+            """
+            loss_val = loss_val * (1 - torch.exp(-1 * loss_val))
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
 
