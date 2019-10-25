@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import math
 
 from .models import Detector, save_model
 from .utils import load_detection_data, ConfusionMatrix
@@ -35,7 +36,6 @@ def train(args):
     pos_weight = pos_weight.reshape(1, 3, 1, 1)
     loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     """
-    loss = torch.nn.BCEWithLogitsLoss()
 
     # load and transform data
     import inspect
@@ -48,6 +48,8 @@ def train(args):
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
+    loss = torch.nn.BCEWithLogitsLoss()
+
     global_step = 0
     for epoch in range(args.num_epoch):
         model.train()
@@ -58,7 +60,9 @@ def train(args):
             # neg / pos
             # loss of all ones is 1 - pos / total
             # loss of all zeros is 1 - neg / total
+            # pos_weight = get_pos_weight(logit, det_map.float())
             loss_val = loss(logit, det_map.float())
+            loss_val = torch.exp(-1 * loss_val)
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
@@ -95,6 +99,12 @@ def train(args):
 
     save_model(model)
 
+def get_pos_weight(logit, det_map):
+    # (32 x 3 x 96 x 128)
+    all_pos = torch.ones(int(det_map.size()[0]), det_map.size()[
+                         1], int(det_map.size()[2]), int(det_map.size()[3]))
+    all_neg = torch.zeros(det_map.size()[0], det_map.size()[1], det_map.size()[
+                         2], det_map.size()[3])
 
 if __name__ == '__main__':
     import argparse
