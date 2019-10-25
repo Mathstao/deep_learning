@@ -129,7 +129,7 @@ class Detector(torch.nn.Module):
             for score, cx, cy in peaks:
                 # append class_id to each tuple to each class
                 global_peaks.append((int(i), float(score), int(cx), int(cy)))
-        global_peaks.sort(key=lambda tup: tup[1])
+        global_peaks.sort(key=lambda tup: tup[1], reverse=True)
         if len(global_peaks) < 100:
             return global_peaks
         else:
