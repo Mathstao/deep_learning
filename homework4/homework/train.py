@@ -51,7 +51,7 @@ def train(args):
     global_step = 0
     for epoch in range(args.num_epoch):
         model.train()
-        conf = ConfusionMatrix()
+        # conf = ConfusionMatrix()
         for img, det_map, size_map in train_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
@@ -66,30 +66,28 @@ def train(args):
             optimizer.step()
             global_step += 1
 
+        """
         if train_logger:
-            train_logger.add_scalar(
-                'global_accuracy', conf.global_accuracy, global_step)
-            train_logger.add_scalar(
-                'average_accuracy', conf.average_accuracy, global_step)
+            train_logger.add_scalar('global_accuracy', conf.global_accuracy, global_step)
+            train_logger.add_scalar('average_accuracy', conf.average_accuracy, global_step)
             train_logger.add_scalar('iou', conf.iou, global_step)
-
+        """
         model.eval()
-        val_conf = ConfusionMatrix()
+        # val_conf = ConfusionMatrix()
         for img, det_map, size_map in valid_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            val_conf.add(logit.argmax(1), det_map)
+            # val_conf.add(logit.argmax(1), det_map)
 
-        if valid_logger:
-            valid_logger.add_scalar(
-                'global_accuracy', val_conf.global_accuracy, global_step)
-            valid_logger.add_scalar(
-                'average_accuracy', val_conf.average_accuracy, global_step)
-            valid_logger.add_scalar('iou', val_conf.iou, global_step)
+        #if valid_logger:
+            #valid_logger.add_scalar('global_accuracy', val_conf.global_accuracy, global_step)
+            #valid_logger.add_scalar('average_accuracy', val_conf.average_accuracy, global_step)
+            #valid_logger.add_scalar('iou', val_conf.iou, global_step)
 
         if valid_logger is None or train_logger is None:
-            print('epoch %-3d \t acc = %0.3f \t val acc = %0.3f \t iou = %0.3f \t val iou = %0.3f' %
-                  (epoch, conf.global_accuracy, val_conf.global_accuracy, conf.iou, val_conf.iou))
+            # print('epoch %-3d \t acc = %0.3f \t val acc = %0.3f \t iou = %0.3f \t val iou = %0.3f' %
+                  # (epoch, conf.global_accuracy, val_conf.global_accuracy, conf.iou, val_conf.iou))
+            print("Completed Epoch: ", epoch)
 
     save_model(model)
 
@@ -101,7 +99,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--log_dir')
     # Put custom arguments here
-    parser.add_argument('-n', '--num_epoch', type=int, default=75)
+    parser.add_argument('-n', '--num_epoch', type=int, default=1)
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-2)
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-t', '--transform',
