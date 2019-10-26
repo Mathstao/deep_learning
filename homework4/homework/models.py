@@ -1,6 +1,9 @@
 import torch
 import torch.nn.functional as F
 import matplotlib as plt
+from pylab import show, subplots
+import numpy as np
+import torchvision.transforms as T
 
 def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
 
@@ -108,10 +111,16 @@ class Detector(torch.nn.Module):
 
     def detect(self, image):
         heatmap = self.forward(image).data[0]
+
         global_peaks = []
         for i in range(3):
             # call peak detection on each class
-            peaks = extract_peak(heatmap[i, :, :])
+            if i == 0:
+                peaks = extract_peak(heatmap[i, :, :], min_score=0)
+            elif i == 1:
+                peaks = extract_peak(heatmap[i, :, :], min_score=-1)
+            else:
+                peaks = extract_peak(heatmap[i, :, :], min_score=0)
             for score, cx, cy in peaks:
                 # append class_id to each tuple to each class
                 global_peaks.append((int(i), float(score), int(cx), int(cy)))

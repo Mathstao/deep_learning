@@ -19,7 +19,7 @@ def point_close(p, x0, y0, x1, y1, d=5):
 
 def box_iou(p, x0, y0, x1, y1, t=0.5):
     iou = abs(min(p[0] + p[2], x1) - max(p[0] - p[2], x0)) * abs(min(p[1] + p[3], y1) - max(p[1] - p[3], y0)) / \
-          abs(max(p[0] + p[2], x1) - min(p[0] - p[2], x0)) * abs(max(p[1] + p[3], y1) - min(p[1] - p[3], y0))
+          (abs(max(p[0] + p[2], x1) - min(p[0] - p[2], x0)) * abs(max(p[1] + p[3], y1) - min(p[1] - p[3], y0)))
     return iou > t
 
 
@@ -225,7 +225,7 @@ class DetectionSizeGrader(Grader):
                 self.pr[i].add([j[1:] for j in d if j[0] == i], gt)
 
     @Case(score=3, extra_credit=True)
-    def test_box_ap0(self, min_val=0.7):
+    def test_box_ap0(self, min_val=0.5):
         """Average precision (iou > 0.5  c=0)"""
         ap = self.pr[0].average_prec
         return ap >= min_val, 'AP = %0.3f' % ap
