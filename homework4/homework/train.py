@@ -58,7 +58,7 @@ def train(args):
             loss_val.backward()
             optimizer.step()
             global_step += 1
-            if global_step % 100 and train_logger is not None == 0:
+            if global_step % 10 and train_logger is not None == 0:
                 train_logger.add_image('image', img[0], global_step)
                 """
                 train_logger.add_image('det_map',
@@ -90,21 +90,6 @@ def train(args):
 
     save_model(model)
 
-
-class FocalLoss():
-    def __init__(self, alpha=1, gamma=2.0, logits=True):
-        super(FocalLoss, self).__init__()
-        self.alpha = alpha
-        self.gamma = gamma
-        self.logits = logits
-
-    def get_loss(self, inputs, targets):
-        BCE_loss = torch.nn.BCEWithLogitsLoss()
-        loss = BCE_loss(inputs, targets)
-        pt = torch.exp(-1 * loss)
-        F_loss = self.alpha * (1-pt)**self.gamma * loss
-        return F_loss
-
 if __name__ == '__main__':
     import argparse
 
@@ -117,7 +102,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-t', '--transform',
                         default='Compose([ToTensor(), ToHeatmap()])')
-    parser.add_argument("-g", "--gamma", type=float, default=2.0)
+    # parser.add_argument("-f", "--loss_func", default="FocalLoss(gamma=args.gamma)")
     # Winner: python3 -m solution.train_cnn -t "Compose([ColorJitter(0.5, 0.3, 0.2), RandomHorizontalFlip(), ToTensor()])" -lr 1e-2  --log_dir log/res_k3_flip_norm_color_deeper_nodrop_long/ -n 150
     args = parser.parse_args()
     train(args)

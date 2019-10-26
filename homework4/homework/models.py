@@ -58,7 +58,6 @@ class CNNClassifier(torch.nn.Module):
 
 # FCN Model from Homework 3
 class Detector(torch.nn.Module):
-
     class UpBlock(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
