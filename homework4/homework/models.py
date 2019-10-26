@@ -39,7 +39,7 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     return peaks
 
 class CNNClassifier(torch.nn.Module):
-    class Block(torch.nn.Module):
+    class DownBlock(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
             self.c1 = torch.nn.Conv2d(n_input, n_output, kernel_size=kernel_size, padding=kernel_size // 2,
@@ -78,7 +78,7 @@ class Detector(torch.nn.Module):
         skip_layer_size = [3] + layers[:-1]
         for i, l in enumerate(layers):
             self.add_module('conv%d' %
-                            i, CNNClassifier.Block(c, l, kernel_size, 2))
+                            i, CNNClassifier.DownBlock(c, l, kernel_size, 2))
             c = l
         for i, l in list(enumerate(layers))[::-1]:
             self.add_module('upconv%d' % i, self.UpBlock(c, l, kernel_size, 2))
