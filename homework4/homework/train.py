@@ -7,6 +7,8 @@ from .utils import load_detection_data, ConfusionMatrix
 from . import dense_transforms
 import torch.utils.tensorboard as tb
 
+import torch.nn.functional as F
+
 
 def train(args):
     from os import path
@@ -38,7 +40,7 @@ def train(args):
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
-    loss = torch.nn.BCEWithLogitsLoss()
+    loss = FocalLoss()
 
     global_step = 0
     for epoch in range(args.num_epoch):
@@ -46,12 +48,8 @@ def train(args):
         for img, det_map, size_map in train_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            loss_val = loss(logit, det_map.float())
-            """
-            gamma = 2.0
-            loss_val = loss_val * torch.pow((1 - torch.exp(-1 * loss_val)), gamma)
-            """
-            # loss_val = loss_val * (1 - torch.exp(-1 * loss_val))
+            loss_val = loss.get_loss(logit, det_map.float())
+
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
 
@@ -68,6 +66,21 @@ def train(args):
         print("Completed Epoch: ", epoch)
 
     save_model(model)
+
+
+class FocalLoss():
+    def __init__(self, alpha=1, gamma=2, logits=True):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.logits = logits
+
+    def get_loss(self, inputs, targets):
+        BCE_loss = torch.nn.BCEWithLogitsLoss()
+        loss = BCE_loss(inputs, targets)
+        pt = torch.exp(-1 * loss)
+        F_loss = self.alpha * (1-pt)**self.gamma * loss
+        return F_loss
 
 if __name__ == '__main__':
     import argparse
