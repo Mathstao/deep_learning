@@ -5,6 +5,7 @@ import math
 from .models import Detector, save_model
 from .utils import load_detection_data, ConfusionMatrix
 from . import dense_transforms
+from torchvision import transforms
 import torch.utils.tensorboard as tb
 
 import torch.nn.functional as F
@@ -38,9 +39,9 @@ def train(args):
     # convert val images to heatmaps
     transform = dense_transforms.Compose(
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
-    valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
+    # valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
-    loss = FocalLoss()
+    loss = FocalLoss(gamma=args.gamma)
 
     global_step = 0
     for epoch in range(args.num_epoch):
@@ -57,28 +58,41 @@ def train(args):
             loss_val.backward()
             optimizer.step()
             global_step += 1
-            print("Loss val: ", loss_val)
+            if global_step % 100 and train_logger is not None == 0:
+                train_logger.add_image('image', img[0], global_step)
+                """
+                train_logger.add_image('det_map',
+                                       np.array(dense_transforms.label_to_pil_image(det_map[0].cpu()).convert("RGB")),
+                                    global_step, dataformats='HWC')
+                """
+                train_logger.add_image('prediction',
+                                    np.array(dense_transforms.label_to_pil_image(logit[0].argmax(dim=0).cpu()).convert("RGB")),
+                                    global_step, dataformats='HWC')
+                print("Loss val: ", loss_val)
 
         model.eval()
+        """
         for img, det_map, size_map in valid_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
 
         if valid_logger is not None:
-            valid_logger.add_image('image', img[0], global_step)
-            valid_logger.add_image('det_map', np.array(dense_transforms.label_to_pil_image(det_map[0].cpu()).
-                                                     convert('RGB')), global_step, dataformats='HWC')
-            valid_logger.add_image('prediction', np.array(dense_transforms.
-                                                          label_to_pil_image(logit[0].argmax(dim=0).cpu()).
-                                                          convert('RGB')), global_step, dataformats='HWC')
-
+            valid_logger.add_image(
+                'image', img[0], global_step)
+            valid_logger.add_image('det_map',
+                                    np.array(dense_transforms.label_to_pil_image(det_map[0].cpu()).convert("RGB")),
+                                global_step, dataformats='HWC')
+            valid_logger.add_image('prediction',
+                            np.array(dense_transforms.label_to_pil_image(logit[0].argmax(dim=0).cpu()).convert("RGB")),
+                            global_step, dataformats='HWC')
+        """
         print("Completed Epoch: ", epoch)
 
     save_model(model)
 
 
 class FocalLoss():
-    def __init__(self, alpha=1, gamma=2, logits=True):
+    def __init__(self, alpha=1, gamma=2.0, logits=True):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -103,6 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-t', '--transform',
                         default='Compose([ToTensor(), ToHeatmap()])')
+    parser.add_argument("-g", "--gamma", type=float, default=2.0)
     # Winner: python3 -m solution.train_cnn -t "Compose([ColorJitter(0.5, 0.3, 0.2), RandomHorizontalFlip(), ToTensor()])" -lr 1e-2  --log_dir log/res_k3_flip_norm_color_deeper_nodrop_long/ -n 150
     args = parser.parse_args()
     train(args)
