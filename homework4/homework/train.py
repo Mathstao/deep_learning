@@ -40,7 +40,7 @@ def train(args):
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     # valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
-    loss = FocalLoss(gamma=args.gamma, logits=True)
+    loss = FocalLoss(alpha=args.alpha, gamma=args.gamma, logits=True)
 
     global_step = 0
     for epoch in range(args.num_epoch):
@@ -125,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--transform',
                         default='Compose([ToTensor(), ToHeatmap()])')
     parser.add_argument("-g", "--gamma", type=float, default=2.0)
+    parser.add_argument("-a", "--alpha", type=float, default=0.0)
     #parser.add_argument("-f", "--loss_func", default="FocalLoss(gamma=args.gamma)")
     # Winner: python3 -m solution.train_cnn -t "Compose([ColorJitter(0.5, 0.3, 0.2), RandomHorizontalFlip(), ToTensor()])" -lr 1e-2  --log_dir log/res_k3_flip_norm_color_deeper_nodrop_long/ -n 150
     args = parser.parse_args()
