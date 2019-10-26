@@ -41,7 +41,7 @@ def train(args):
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     # valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
-    loss = FocalLoss(gamma=args.gamma, logits=True)
+    loss = FocalLoss(gamma=args.gamma, logits=False)
 
     global_step = 0
     for epoch in range(args.num_epoch):
