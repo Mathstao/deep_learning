@@ -41,7 +41,7 @@ def train(args):
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     # valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
-    loss = FocalLoss(gamma=args.gamma)
+    loss = FocalLoss(gamma=args.gamma, logits=True)
 
     global_step = 0
     for epoch in range(args.num_epoch):
@@ -49,7 +49,7 @@ def train(args):
         for img, det_map, size_map in train_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-            loss_val = loss.get_loss(logit, det_map.float())
+            loss_val = loss.forward(logit, det_map.float())
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
@@ -90,6 +90,29 @@ def train(args):
 
     save_model(model)
 
+
+class FocalLoss(torch.nn.Module):
+    def __init__(self, alpha=1, gamma=2, logits=False, reduce=True):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.logits = logits
+        self.reduce = reduce
+
+    def forward(self, inputs, targets):
+        if self.logits:
+            BCE_loss = F.binary_cross_entropy_with_logits(
+                inputs, targets, reduce=False)
+        else:
+            BCE_loss = F.binary_cross_entropy(inputs, targets, reduce=False)
+        pt = torch.exp(-BCE_loss)
+        F_loss = self.alpha * (1-pt)**self.gamma * BCE_loss
+
+        if self.reduce:
+            return torch.mean(F_loss)
+        else:
+            return F_loss
+
 if __name__ == '__main__':
     import argparse
 
@@ -102,7 +125,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-t', '--transform',
                         default='Compose([ToTensor(), ToHeatmap()])')
-    # parser.add_argument("-f", "--loss_func", default="FocalLoss(gamma=args.gamma)")
+    parser.add_argument("-g", "--gamma", type=float, default=2.0)
+    #parser.add_argument("-f", "--loss_func", default="FocalLoss(gamma=args.gamma)")
     # Winner: python3 -m solution.train_cnn -t "Compose([ColorJitter(0.5, 0.3, 0.2), RandomHorizontalFlip(), ToTensor()])" -lr 1e-2  --log_dir log/res_k3_flip_norm_color_deeper_nodrop_long/ -n 150
     args = parser.parse_args()
     train(args)
