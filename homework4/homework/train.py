@@ -57,12 +57,21 @@ def train(args):
             loss_val.backward()
             optimizer.step()
             global_step += 1
-        """
+            print("Loss val: ", loss_val)
+
         model.eval()
         for img, det_map, size_map in valid_data:
             img, det_map = img.to(device), det_map.to(device).long()
             logit = model(img)
-        """
+
+        if valid_logger is not None:
+            valid_logger.add_image('image', img[0], global_step)
+            valid_logger.add_image('det_map', np.array(dense_transforms.label_to_pil_image(det_map[0].cpu()).
+                                                     convert('RGB')), global_step, dataformats='HWC')
+            valid_logger.add_image('prediction', np.array(dense_transforms.
+                                                          label_to_pil_image(logit[0].argmax(dim=0).cpu()).
+                                                          convert('RGB')), global_step, dataformats='HWC')
+
         print("Completed Epoch: ", epoch)
 
     save_model(model)
