@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 from .models import Detector, save_model
-from .utils import load_detection_data, ConfusionMatrix
+from .utils import load_detection_data
 from . import dense_transforms
 from torchvision import transforms
 import torch.utils.tensorboard as tb
@@ -34,8 +34,7 @@ def train(args):
     import inspect
     transform = eval(args.transform, {k: v for k, v in inspect.getmembers(
         dense_transforms) if inspect.isclass(v)})
-    train_data = load_detection_data(
-        'dense_data/train', num_workers=4, transform=transform)
+    train_data = load_detection_data('dense_data/train', num_workers=4, transform=transform)
     # convert val images to heatmaps
     transform = dense_transforms.Compose(
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
@@ -92,7 +91,7 @@ def train(args):
 
 
 class FocalLoss(torch.nn.Module):
-    def __init__(self, alpha=1, gamma=2, logits=False, reduce=True):
+    def __init__(self, alpha=1, gamma=2, logits=True, reduce=True):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
