@@ -13,7 +13,6 @@ import torch.nn.functional as F
 
 def train(args):
     from os import path
-    model = Detector()
     train_logger, valid_logger = None, None
     if args.log_dir is not None:
         train_logger = tb.SummaryWriter(path.join(args.log_dir, 'train'), flush_secs=1)
@@ -41,15 +40,15 @@ def train(args):
         [dense_transforms.ToTensor(), dense_transforms.ToHeatmap()])
     # valid_data = load_detection_data('dense_data/valid', num_workers=4, transform=transform)
 
-    loss = FocalLoss(gamma=args.gamma, logits=True)
+    loss = FocalLoss(gamma=args.gamma, logits=args.logits)
 
     global_step = 0
     for epoch in range(args.num_epoch):
         model.train()
         for img, det_map, size_map in train_data:
-            img, det_map = img.to(device), det_map.to(device).long()
+            img, det_map = img.to(device), det_map.to(device)
             logit = model(img)
-            loss_val = loss.forward(logit, det_map.float())
+            loss_val = loss.forward(logit, det_map)
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss_val, global_step)
@@ -92,7 +91,7 @@ def train(args):
 
 
 class FocalLoss(torch.nn.Module):
-    def __init__(self, alpha=1, gamma=2, logits=False, reduce=True):
+    def __init__(self, alpha=1, gamma=2, logits=True, reduce=True):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -126,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--transform',
                         default='Compose([ToTensor(), ToHeatmap()])')
     parser.add_argument("-g", "--gamma", type=float, default=2.0)
+    parser.add_argument("-l", "--logits", type=bool, default=True)
     #parser.add_argument("-f", "--loss_func", default="FocalLoss(gamma=args.gamma)")
     # Winner: python3 -m solution.train_cnn -t "Compose([ColorJitter(0.5, 0.3, 0.2), RandomHorizontalFlip(), ToTensor()])" -lr 1e-2  --log_dir log/res_k3_flip_norm_color_deeper_nodrop_long/ -n 150
     args = parser.parse_args()
