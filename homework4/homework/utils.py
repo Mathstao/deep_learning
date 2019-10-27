@@ -26,17 +26,20 @@ class DetectionSuperTuxDataset(Dataset):
 
     def __getitem__(self, idx):
         import numpy as np
-        b = self.files[idx]
+        no_bombs = True
+        while (no_bombs):
+            b = self.files[idx]
+            nfo = np.load(b + '_boxes.npz')
+            bmb_boxes = self._filter(nfo['bombs'])
+            if len(bmb_boxes) > 0:
+                no_bombs = False
+            else:
+                idx = (idx + 1) % len(self.files)
         im = Image.open(b + '_im.jpg')
-        nfo = np.load(b + '_boxes.npz')
-        bmb_boxes = self._filter(nfo['bombs'])
         data = im, self._filter(
             nfo['karts']), bmb_boxes, self._filter(nfo['pickup'])
         if self.transform is not None:
-            if len(bmb_boxes) > 0:
-                data = self.transform(*data)
-            else:
-                data = self.crazy_transform(*data)
+            data = self.transform(*data)
         return data
 
 
