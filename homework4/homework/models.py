@@ -118,7 +118,7 @@ class Detector(torch.nn.Module):
             if i == 0:
                 peaks = extract_peak(heatmap[i, :, :], min_score=0)
             elif i == 1:
-                peaks = extract_peak(heatmap[i, :, :], min_score=0)
+                peaks = extract_peak(heatmap[i, :, :], min_score=-1)
             else:
                 peaks = extract_peak(heatmap[i, :, :], min_score=0)
             for score, cx, cy in peaks:

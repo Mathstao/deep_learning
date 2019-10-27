@@ -11,6 +11,11 @@ class DetectionSuperTuxDataset(Dataset):
         for im_f in glob(path.join(dataset_path, '*_im.jpg')):
             self.files.append(im_f.replace('_im.jpg', ''))
         self.transform = transform
+        self.crazy_transform = dense_transforms.Compose(
+            [dense_transforms.ColorJitter(1, 1, 1, 0.5),
+            dense_transforms.RandomHorizontalFlip(flip_prob=0.99),
+            dense_transforms.ToTensor(),
+            dense_transforms.ToHeatmap()])
         self.min_size = min_size
 
     def _filter(self, boxes):
@@ -24,10 +29,14 @@ class DetectionSuperTuxDataset(Dataset):
         b = self.files[idx]
         im = Image.open(b + '_im.jpg')
         nfo = np.load(b + '_boxes.npz')
-        data = im, self._filter(nfo['karts']), self._filter(
-            nfo['bombs']), self._filter(nfo['pickup'])
+        bmb_boxes = self._filter(nfo['bombs'])
+        data = im, self._filter(
+            nfo['karts']), bmb_boxes, self._filter(nfo['pickup'])
         if self.transform is not None:
-            data = self.transform(*data)
+            if len(bmb_boxes) > 0:
+                data = self.transform(*data)
+            else:
+                data = self.crazy_transform(*data)
         return data
 
 
