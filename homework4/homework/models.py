@@ -7,15 +7,6 @@ import torchvision.transforms as T
 
 def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
 
-    """
-       Your code here.
-       Extract local maxima (peaks) in a 2d heatmap.
-       @heatmap: H x W heatmap containing peaks (similar to your training heatmap)
-       @max_pool_ks: Only return points that are larger than a max_pool_ks x max_pool_ks window around the point
-       @min_score: Only return peaks greater than min_score
-       @return: List of peaks [(scores, cx, cy), ...], where cx, cy are the position of a peak and score is the
-                heatmap value at the peak. Return no more than max_det peaks per image
-    """
     heatmap_pool = F.max_pool2d(
         heatmap[None, None], kernel_size=max_pool_ks, padding=max_pool_ks // 2, stride=1)
     h = heatmap_pool.size()[2]
@@ -25,7 +16,6 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     # get coordinates of actual max by comparing input
     cmp_result = torch.eq(heatmap, heatmap_pool).float()
     heatmap_pool = cmp_result * heatmap_pool
-
     heatmap_pool = torch.flatten(heatmap_pool)
 
     if max_det > heatmap_pool.size()[0]:
@@ -111,14 +101,14 @@ class Detector(torch.nn.Module):
 
     def detect(self, image):
         heatmap = self.forward(image).data[0]
-
         global_peaks = []
         for i in range(3):
             # call peak detection on each class
             if i == 0:
                 peaks = extract_peak(heatmap[i, :, :], min_score=0)
             elif i == 1:
-                peaks = extract_peak(heatmap[i, :, :], min_score=-1)
+                peaks = extract_peak(heatmap[i, :, :], min_score=0)
+
             else:
                 peaks = extract_peak(heatmap[i, :, :], min_score=0)
             for score, cx, cy in peaks:
@@ -129,7 +119,6 @@ class Detector(torch.nn.Module):
             return global_peaks
         else:
             return global_peaks[:100]
-
 
     def detect_with_size(self, image):
         """

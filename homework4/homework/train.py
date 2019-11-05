@@ -57,16 +57,7 @@ def train(args):
             loss_val.backward()
             optimizer.step()
             global_step += 1
-            if global_step % 10 and train_logger is not None == 0:
-                train_logger.add_image('image', img[0], global_step)
-                """
-                train_logger.add_image('det_map',
-                                       np.array(dense_transforms.label_to_pil_image(det_map[0].cpu()).convert("RGB")),
-                                    global_step, dataformats='HWC')
-                """
-                train_logger.add_image('prediction',
-                                    np.array(dense_transforms.label_to_pil_image(logit[0].argmax(dim=0).cpu()).convert("RGB")),
-                                    global_step, dataformats='HWC')
+            if global_step % 10:
                 print("Loss val: ", loss_val)
 
         model.eval()
