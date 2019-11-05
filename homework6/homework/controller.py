@@ -25,6 +25,9 @@ def control(aim_point, current_vel):
     steer_factor = 0.9
     drift_thresh = 0.9
     accel_factor = 0.35
+    slow_down_thresh = 0.9
+    slow_down_accel = 0.1
+
     nitro_thresh = 0.1
     start_steering = 0.05
 
@@ -50,10 +53,10 @@ def control(aim_point, current_vel):
     vel_ratio = current_vel / target_vel
     if current_vel > target_vel:
         action.acceleration = 0
-    elif abs(theta) > 0.9:
-        action.acceleration = 0.1
+    elif abs(theta) > slow_down_thresh:
+        action.acceleration = slow_down_accel
     else:
-        # accelerate proportionally to target speed
+        # accelerate proportionally to target
         #action.acceleration = 1 - vel_ratio - abs(theta) * accel_factor
         action.acceleration = 1 - vel_ratio * accel_factor
     if abs(theta) < nitro_thresh:
