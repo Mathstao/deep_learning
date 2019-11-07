@@ -56,6 +56,8 @@ def train(args):
             optimizer.step()
             global_step += 1
 
+        print("Completed Epoch: ", epoch)
+
 
     save_model(model)
 
