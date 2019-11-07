@@ -98,7 +98,7 @@ class Planner(torch.nn.Module):
         H_out = img.size()[2]
         W_out = img.size()[3]
         cz = scale_coords(cz, H_out, W_out)
-        return cz, sz
+        return cz
 
     def detect(self, image, **kwargs):
         """

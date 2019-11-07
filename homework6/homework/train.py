@@ -17,7 +17,7 @@ def train(args):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = Planner().to(device)
     if args.continue_training:
-        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'det.th')))
+        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'planner.th')))
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
@@ -38,7 +38,7 @@ def train(args):
 
         for img, target in train_data:
             img, target = img.to(device), target.to(device)
-            pred, size = model(img)
+            pred = model(img)
             # print("Pred: ", pred[0:10])
             # print("target: ", target[0:10])
             loss = mse_loss(pred, target) * args.mse_weight
