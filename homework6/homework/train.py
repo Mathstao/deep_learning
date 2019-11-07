@@ -47,8 +47,6 @@ def train(args):
             if train_logger is not None and global_step % 100 == 0:
                 train_logger.add_image(
                                 'image', img[0], global_step)
-                train_logger.add_scalar('target', target, global_step)
-                train_logger.add_scalar('pred', pred, global_step)
 
             if train_logger is not None:
                 train_logger.add_scalar('loss', loss, global_step)
