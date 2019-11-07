@@ -74,6 +74,6 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-t', '--transform',
                         default='Compose([ToTensor()])')
-    parser.add_argument('-mw', '--mse-weight', type=float, default=0.01)
+    parser.add_argument('-mw', '--mse_weight', type=float, default=0.01)
     args = parser.parse_args()
     train(args)
