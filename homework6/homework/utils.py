@@ -197,6 +197,15 @@ def spatial_argmax(logit):
                         (weights.sum(2) * torch.linspace(-1, 1, logit.size(1)).to(logit.device)[None]).sum(1)), 1)
 
 
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     from .controller import control
     from argparse import ArgumentParser
