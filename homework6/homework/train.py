@@ -37,7 +37,7 @@ def train(args):
         model.train()
 
         for img, target in train_data:
-            img = img.to(device)
+            img, target = img.to(device), target.to(device)
             pred, size = model(img)
             # print("Pred: ", pred[0:10])
             # print("target: ", target[0:10])
