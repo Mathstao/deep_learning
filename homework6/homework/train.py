@@ -41,7 +41,7 @@ def train(args):
             pred, size = model(img)
             # print("Pred: ", pred[0:10])
             # print("target: ", target[0:10])
-            loss = mse_loss(pred, target) * args.mse_loss
+            loss = mse_loss(pred, target) * args.mse_weight
             # print("Loss: ", loss[0:10])
 
             if train_logger is not None and global_step % 100 == 0:
