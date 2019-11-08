@@ -150,10 +150,14 @@ class PyTux:
             if planner:
                 image = np.array(self.k.render_data[0].image)
                 aim_point_image = planner(TF.to_tensor(image)[None]).squeeze(0)
+                # shift y value down
+                aim_point_image[1] = aim_point_image[1] * 0.8
+                aim_point_image
+                print("aim point image: ", aim_point_image)
                 aim_point_world = self._to_world(aim_point_image, proj, view, kart.location[1])
+                print("aim point world: ", aim_point_world)
             else:
                 aim_point_world = self._point_on_track(kart.distance_down_track + TRACK_OFFSET, track)
-
             aim_point_car = self._to_kart(aim_point_world, kart)
             current_vel = np.linalg.norm(kart.velocity)
             action = controller(aim_point_car, current_vel)
