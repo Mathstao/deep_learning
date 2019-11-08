@@ -5,6 +5,7 @@ import numpy as np
 
 def control(aim_point, current_vel):
     # print("X: %f ,Y: %f, Z: %f" % (aim_point[0], aim_point[1], aim_point[2]))
+    # print("X: %f" % aim_point[0])
     """
     Set the Action for the low-level controller
     :param aim_point: Aim point, in local coordinate frame
@@ -23,7 +24,7 @@ def control(aim_point, current_vel):
     # accleration
     # hyperparameters
     target_vel = 25
-    steer_factor = 0.9
+    steer_factor = 0.95
     drift_thresh = 0.9
     accel_factor = 0.35
     slow_down_thresh = 0.95
@@ -38,9 +39,12 @@ def control(aim_point, current_vel):
     x = aim_point[0]
     y = aim_point[1]
     # fix absurd aim point values
-    if abs(x) > 200:
-        # print("%f -> %f" %(x, 0))
-        x = 0
+    if x > 200:
+        # print("%f -> %f" %(x, 10))
+        x = 5
+    elif x < -200:
+        # print("%f -> %f" % (x, -5))
+        x = -5
 
     theta = np.arctan(x)
     theta /= math.pi / 2
