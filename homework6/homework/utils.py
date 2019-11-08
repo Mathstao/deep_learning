@@ -225,6 +225,7 @@ if __name__ == '__main__':
     parser.add_argument('--aim_noise', default=5, type=float)
     parser.add_argument('--vel_noise', default=5, type=float)
     parser.add_argument('-v', '--verbose', action='store_true')
+    # current aim_noise and vel_noise set to zero gives me best results (75/100)
     args = parser.parse_args()
     try:
         makedirs(args.output)

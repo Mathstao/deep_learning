@@ -4,6 +4,7 @@ import numpy as np
 
 
 def control(aim_point, current_vel):
+    # print("X: %f ,Y: %f, Z: %f" % (aim_point[0], aim_point[1], aim_point[2]))
     """
     Set the Action for the low-level controller
     :param aim_point: Aim point, in local coordinate frame
@@ -25,7 +26,7 @@ def control(aim_point, current_vel):
     steer_factor = 0.9
     drift_thresh = 0.9
     accel_factor = 0.35
-    slow_down_thresh = 0.9
+    slow_down_thresh = 0.95
     slow_down_accel = 0.1
 
     nitro_thresh = 0.1
@@ -35,7 +36,12 @@ def control(aim_point, current_vel):
     # Hint: Use action.brake to True/False to brake (optionally)
     # Hint: Use action.steer to turn the kart towards the aim_point, clip the steer angle to -1..1
     x = aim_point[0]
-    # handle case where we're going the wrong way
+    y = aim_point[1]
+    # fix absurd aim point values
+    if abs(x) > 200:
+        # print("%f -> %f" %(x, 0))
+        x = 0
+
     theta = np.arctan(x)
     theta /= math.pi / 2
     if abs(theta) < start_steering:

@@ -70,13 +70,6 @@ class Planner(torch.nn.Module):
         @img: (B,3,96,128)
         return (B,2)
         """
-        # takes output of FCN planner, passes the logit (heatmap) through the spatial_argmax function
-        # returns the SCALED output of the spatial_argmax values (scaled to anywhere on the game image?)
-        """
-           Your code here.
-           Implement a forward pass through the network, use forward for training,
-           and detect for detection
-        """
         z = (img - self.input_mean[None, :, None, None].to(img.device)
              ) / self.input_std[None, :, None, None].to(img.device)
         up_activation = []
@@ -100,18 +93,6 @@ class Planner(torch.nn.Module):
         cz = scale_coords(cz, H_out, W_out)
         return cz
 
-    def detect(self, image, **kwargs):
-        """
-           Your code here.
-           Implement object detection here.
-           @image: 3 x H x W image
-           @return: List of detections [(class_id, score, cx, cy), ...],
-                    return no more than 100 detections per image
-           Hint: Use extract_peak here
-        """
-        cls, size = self.forward(image[None])
-        return [(c, *d) for c in range(cls.size(1)) for d in extract_peak(cls[0, c], max_det=33, **kwargs)]
-
 def scale_coords(coords, out_H, out_W):
     try:
         coords[:, 0] = (coords[:, 0] + 1) * out_H / 2
@@ -119,26 +100,6 @@ def scale_coords(coords, out_H, out_W):
     except:
         print("Your scale_coords broke, check the + 1 to the tensor")
     return coords
-
-def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
-    # this should be good to go, probably just need to adjust detect...
-    """
-       @return: List of peaks [(score, cx, cy), ...], where cx, cy are the position of a peak and score is the
-                heatmap value at the peak. Return no more than max_det peaks per image
-    """
-    import numpy as np
-    max_cls = F.max_pool2d(
-        heatmap[None, None], kernel_size=max_pool_ks, padding=max_pool_ks // 2, stride=1)
-    possible_det = heatmap - (max_cls[0, 0] > heatmap).float() * 1e5
-    if max_det > possible_det.numel():
-        max_det = possible_det.numel()
-    score, loc = torch.topk(possible_det.view(-1), max_det)
-    r = []
-    for s, l in zip(score, loc):
-        if s > min_score:
-            id = np.unravel_index(l, heatmap.shape)
-            r.append((float(s), id[1], id[0]))
-    return r
 
 def save_model(model):
     from torch import save
