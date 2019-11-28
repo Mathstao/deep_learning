@@ -1,6 +1,7 @@
 from .models import LanguageModel, AdjacentLanguageModel, Bigram, load_model
 from . import utils
 import torch
+from torch.distributions import Categorical, Uniform
 
 
 def log_likelihood(model: LanguageModel, some_text: str):
@@ -15,9 +16,6 @@ def log_likelihood(model: LanguageModel, some_text: str):
     :param some_text:
     :return: float
     """
-    # takes in a string and language model
-    # truncate by one to remove probability of next character that doesn't actually
-    # exist in some_text
     text = utils.one_hot(some_text)
     predict_all = model.predict_all(some_text)[:, 0:len(some_text)]
     total = 0.0
@@ -38,8 +36,17 @@ def sample_random(model: LanguageModel, max_length: int = 100):
     :param max_length: The maximum sentence length
     :return: A string
     """
-    raise NotImplementedError('sample_random')
-
+    # raise NotImplementedError('sample_random')
+    s = ""
+    next_s = ""
+    while len(s) <= max_length and next_s != '.':
+        log_probs = model.predict_next(s)
+        sample = Categorical(logits=log_probs).sample().item()
+        next_s = utils.vocab[sample]
+        # dist = Categorical(probs=None, logits=log_probs)
+        # sample randomly from the log_probs distribution
+        s += next_s
+    return s
 
 class TopNHeap:
     """
@@ -81,8 +88,13 @@ def beam_search(model: LanguageModel, beam_size: int, n_results: int = 10, max_l
                                    This option favors longer strings.
     :return: A list of strings of size n_results
     """
-    raise NotImplementedError('beam_search')
+    """
+    results = []
 
+
+    return results
+    """
+    raise NotImplementedError('beam_search')
 
 if __name__ == "__main__":
     """
