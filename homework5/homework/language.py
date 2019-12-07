@@ -3,6 +3,8 @@ from . import utils
 import torch
 from torch.distributions import Categorical, Uniform
 
+from collections import deque
+
 
 def log_likelihood(model: LanguageModel, some_text: str):
     """
@@ -18,11 +20,8 @@ def log_likelihood(model: LanguageModel, some_text: str):
     """
     text = utils.one_hot(some_text)
     predict_all = model.predict_all(some_text)[:, 0:len(some_text)]
-    total = 0.0
     likelihoods = torch.mm(predict_all.t(), text)
-    for i in range(len(some_text)):
-        total += likelihoods[i, i]
-    return total
+    return sum(likelihoods.diag())
 
 
 def sample_random(model: LanguageModel, max_length: int = 100):
@@ -36,7 +35,6 @@ def sample_random(model: LanguageModel, max_length: int = 100):
     :param max_length: The maximum sentence length
     :return: A string
     """
-    # raise NotImplementedError('sample_random')
     s = ""
     next_s = ""
     while len(s) <= max_length and next_s != '.':
@@ -71,30 +69,66 @@ class TopNHeap:
         elif self.elements[0] < e:
             heapreplace(self.elements, e)
 
+    def remove(self):
+        from heapq import heappop
+        if len(self.elements) > 0:
+            val = heappop(self.elements)
+            return val
+        else:
+            return None
+
 
 def beam_search(model: LanguageModel, beam_size: int, n_results: int = 10, max_length: int = 100, average_log_likelihood: bool = False):
-    """
-    Your code here
 
-    Use beam search for find the highest likelihood generations, such that:
-      * No two returned sentences are the same
-      * the `log_likelihood` of each returned sentence is as large as possible
+    # heap will sort by first element in tuple
+    heap = TopNHeap(beam_size)
+    term_heap = TopNHeap(n_results)
+    visited = set()
 
-    :param model: A LanguageModel
-    :param beam_size: The size of the beam in beam search (number of sentences to keep around)
-    :param n_results: The number of results to return
-    :param max_length: The maximum sentence length
-    :param average_log_likelihood: Pick the best beams according to the average log-likelihood, not the sum
-                                   This option favors longer strings.
-    :return: A list of strings of size n_results
-    """
-    """
-    results = []
+    # initialize heap
+    likelihoods = model.predict_next("")
+    for i, l in enumerate(likelihoods):
+        visited.add(utils.vocab[i])
+        if utils.vocab[i] == '.':
+            term_heap.add(( l, utils.vocab[i]) )
+        else:
+            heap.add( (l, utils.vocab[i]) )
 
+    iters = 0
+    while iters < 50:
 
-    return results
-    """
-    raise NotImplementedError('beam_search')
+        for curr_l, curr_s in heap.elements:
+            likelihoods = model.predict_next(curr_s)
+
+            for i, l in enumerate(likelihoods):
+                new_s = curr_s + utils.vocab[i]
+                if average_log_likelihood:
+                    new_l = log_likelihood(model, new_s) / len(new_s)
+                else:
+                    new_l = curr_l + l
+
+                if new_s not in visited:
+                    visited.add(new_s)
+                    # add to terminated heap
+                    if new_s[-1] == '.' or len(new_s) > max_length:
+                        term_heap.add( (new_l, new_s) )
+                    else:
+                        heap.add( (new_l, new_s) )
+        iters += 1
+
+    # sort and return
+    sort_list = []
+    for i in range(len(term_heap.elements)):
+        sort_list.append(term_heap.elements[i])
+    #sort_list.sort(reverse=True)
+    sort_list.sort()
+
+    return_list = []
+    for l, s in sort_list:
+        return_list.append(s)
+    print(return_list)
+    return return_list
+
 
 if __name__ == "__main__":
     """
