@@ -1,0 +1,1 @@
+{'acceleration': 1.0, 'brake': False, 'steer': 1.0, 'fire': False, 'drift': False}
