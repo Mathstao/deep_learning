@@ -19,7 +19,6 @@ def control(aim_point, current_vel):
     3) optimize hyper parameters
     """
 
-    # optimizations
     # steering angle
     # accleration
     # hyperparameters
